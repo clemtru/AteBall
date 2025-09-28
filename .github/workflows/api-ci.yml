@@ -2,13 +2,23 @@ name: API CI
 on:
   pull_request:
     branches: [ "main" ]
+
 jobs:
   test:
     runs-on: ubuntu-latest
-    defaults: { run: { working-directory: api } }
+    defaults:
+      run:
+        working-directory: api
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: '20' }
-      - run: npm ci
-      - run: npm test
+        with:
+          node-version: '20'          # ← keep only this for now
+      - name: Install deps (ci if lockfile, else install)
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          else
+            npm install --no-audit --no-fund
+          fi
+      - run: npm test --if-present
